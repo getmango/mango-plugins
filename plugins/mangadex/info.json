@@ -1,0 +1,8 @@
+{
+	"id": "mangadex",
+	"title": "MangaDex",
+	"author": "Alex Ling - hkalexling@gmail.com",
+	"version": "v1.0",
+	"placeholder": "MangaDex manga ID (e.g., 7139)",
+	"wait_seconds": 5
+}
