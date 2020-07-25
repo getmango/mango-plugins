@@ -52,7 +52,7 @@ function selectChapter(id) {
 			throw new Error
 		var lengthText = mango.text(lengthRow);
 		pages = parseInt(/([0-9]+)/.exec(lengthText)[1]);
-	} catch {
+	} catch (e) {
 		mango.raise("Failed to get page count");
 	}
 
