@@ -8,4 +8,4 @@ To install a plugin, simply download the folder containing the desired plugin (e
 
 ### Contributing
 
-Pull requests are always welcome! 
+Pull requests are always welcome! Please check out the [development guidelne](https://github.com/hkalexling/mango-plugins/wiki/Development-Guideline).
