@@ -1,7 +1,7 @@
 var chapter;
 var currentPage;
 
-function search(query) {
+function listChapters(query) {
 	var json = {};
 	var URL = 'https://mangadex.org/api/manga/' + query;
 	try {

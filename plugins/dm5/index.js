@@ -10,7 +10,7 @@ var DM5 = {};
 var currentPage = 1;
 var digits = 0;
 
-function search(query) {
+function listChapters(query) {
 	var html = mango.get(query, headers).body;
 
 	var title = /DM5_COMIC_MNAME\s*=\s*['"]([^"']+)['"]/.exec(html)[1];

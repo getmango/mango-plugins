@@ -7,7 +7,7 @@ var pageCount = 0;
 var ended = false;
 var digits = 0;
 
-function search(url) {
+function listChapters(url) {
 	var html = mango.get(url, headers).body;
 
 	var urlMatch = /\/g\/([a-zA-Z0-9]+)\/([a-zA-Z0-9]+)/.exec(url);
