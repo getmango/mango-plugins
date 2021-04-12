@@ -1,6 +1,6 @@
-# Manganelo Plugin
+# Mangatx Plugin
 
-This is the Mango plugin for [MangaTX](https://mangatx.com/). 
+This is the Mango plugin for [MangaTX](https://mangatx.com/) and other wordpress-based manga hosting (ex: [MangaClash](https://mangaclash.com/)]). 
 
 Note that
 
