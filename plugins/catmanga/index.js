@@ -41,12 +41,11 @@ function listChapters(query) {
 	//	We have to do it manually since Catmanga has no searching.
 	var manga;
 	allSeries.forEach(function(element) {
-		if (query.toLowerCase() == element["title"].toLowerCase() ||
-			query.toLowerCase() == element["series_id"].toLowerCase()) {
+		if (fuzzySearch(query, element["title"]) || fuzzySearch(query, element["series_id"])) {
 			manga = element;
 		} else {
 			element["alt_titles"].forEach(function(title) {
-				if (title.toLowerCase() == query.toLowerCase()) {
+				if (fuzzySearch(query, title)) {
 					manga = element;
 				}
 			});
@@ -65,8 +64,8 @@ function listChapters(query) {
 
 	var chapters = [];
 	manga["chapters"].forEach(function(chapter) {
-		var seriesID = manga["series_id"];
-		var chapterNum = chapter["number"].toString().replace(/\./, "_");
+		var seriesID = manga["series_id"].replace(/\-/, "_");
+		var chapterNum = chapter["number"].toString().replace(/\./, "d");
 		var chapterGroups = chapter["groups"].join(", ")
 		
 		var slimObj = {};
@@ -85,9 +84,9 @@ function listChapters(query) {
 
 function selectChapter(id) {
 	// Get buildID for chapter	
-	var mangaIDMatch = /(.*?)ch((\d_?)*)$/.exec(id);
-	var mangaID = mangaIDMatch[1];
-	var mangaChapterNumber = mangaIDMatch[2].replace(/\_/, "."); // Convert '_' back to '.
+	var mangaIDMatch = /(.*?)ch((\dd?)*)$/.exec(id);
+	var mangaID = mangaIDMatch[1].replace(/\_/, "-"); // Convert '_' back to '-'
+	var mangaChapterNumber = mangaIDMatch[2].replace(/d/, "."); // Convert chxx(d)xx back to '.'
 
 	var chapterReaderURL = ROOT_URL + "series/" + mangaID + "/" + mangaChapterNumber;
 	var chapterHTML = mango.get(chapterReaderURL).body;
@@ -150,6 +149,12 @@ function nextPage() {
 		}
 	});
 }
+
+function fuzzySearch(query, trueString) {
+	return trueString.toLowerCase()
+		.indexOf(query.toLowerCase()) !== -1;
+}
+
 
 // https://stackoverflow.com/a/10073788
 function pad(n, width, z) {
