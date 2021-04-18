@@ -1,5 +1,4 @@
 var headers = {
-	'Cookie': 'nw=1',
     'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:79.0) Gecko/20100101 Firefox/79.0'
 };
 
