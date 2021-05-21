@@ -15,12 +15,24 @@ function listChapters(query) {
 	try {
 		var searchResp = mango.get(SEARCH_URL + encodeURI(query) + SEARCH_PARAMS).body;
 		var search = JSON.parse(searchResp);
-		var mangaID = search["items"][0][0][3];
 	} catch (error) {
-		mango.raise("Could not find a webtoon with that title.");
+		mango.raise("An error occured while searching.");
 	}
 
-	if (!mangaID) mango.raise("Could not get webtoon ID.");
+	if (search["items"].length == 0) mango.raise("Could not find a webtoon with that title.");
+
+	var mangaID;
+	for (var i = 0; i < search["items"][0].length; i++) {
+		var item = search["items"][0][i];
+		
+		// Get first webtoon, ignore authors
+		if (item[1][0] == "TITLE") {
+			mangaID = item[3][0];
+			break;
+		}
+	}
+
+	if (!mangaID) mango.raise("Could not find a webtoon with that title.");
 
 	try {
 		var resp = mango.get(BASE_URL + LIST_ENDPOINT + mangaID);
@@ -28,6 +40,8 @@ function listChapters(query) {
 	} catch (error) {
 		mango.raise("Could not get webtoon page.");
 	}
+
+	if (!urlLocation) mango.raise("Could not get webtoon page.");
 	
 	chapters = [];
 	var html = mango.get(MOBILE_URL + urlLocation, {
@@ -43,7 +57,7 @@ function listChapters(query) {
 	liChapters.forEach(function(chapter) {
 		var url = mango.attribute(mango.css(chapter, "a")[0], 'href');
 		
-		var chapterIDRegex = /webtoons\.com\/\w{2}\/\w+\/(\w-?)+\/(.+)\//;
+		var chapterIDRegex = /webtoons\.com\/\w{2}\/.+\/(\w-?)+\/(.+)\//;
 		var chapterIDMatch = chapterIDRegex.exec(url);
 		
 		var chapterID;
