@@ -2,132 +2,135 @@ var currentPage = 0;
 var digits = 0;
 var imgURLs;
 
-const SEARCH_URL = "https://manganelo.com/getstorysearchjson";
-const MANGA_URL = "https://manganelo.com/manga/";
-const CHAPTER_URL = "https://manganelo.com/chapter/";
+const SEARCH_URL = "https://readmanganato.com/getstorysearchjson";
+const MAIN_URL = "https://readmanganato.com/";
 
 function listChapters(query) {
-	var search = mango.post(SEARCH_URL, "searchword=" + query, {
-		"content-type" : "application/x-www-form-urlencoded"
-	}).body;
+        var search = mango.post(SEARCH_URL, "searchword=" + query, {
+                "content-type" : "application/x-www-form-urlencoded"
+        }).body;
 
-	if (!search) {
-		mango.raise("An error occured when searching.");
-	}
+        if (!search) {
+                mango.raise("An error occured when searching.");
+        }
 
-	var mangaID = JSON.parse(search)[0].id_encode;
-	var mangaURL = MANGA_URL + mangaID;
 
-	var html = mango.get(mangaURL).body;
+        var mangaURL = JSON.parse(search)[0].link_story;
+        var mangaID = /manga-(\w+)/.exec(mangaURL)[1];
 
-	if(!html) {
-		mango.raise("Failed to find manga.");
-	}
+        var html = mango.get(mangaURL).body;
 
-	var mangaTitleNode = mango.css(html, "div.story-info-right h1")[0];
+        if(!html) {
+                mango.raise("Failed to find manga.");
+        }
 
-	if (!mangaTitleNode) {
-		mango.raise("Failed to get chapter title.");
-	}
+        var mangaTitleNode = mango.css(html, "div.story-info-right h1")[0];
 
-	var mangaTitle = mango.text(mangaTitleNode);
+        if (!mangaTitleNode) {
+                mango.raise("Failed to get chapter title.");
+        }
 
-	var chapters = [];
-	mango.css(html, "ul.row-content-chapter li").forEach(function (element) {
-		var linkNode   = mango.css(element, "a.chapter-name")[0]; 
-		var uploadNode = mango.css(element, "span.chapter-time")[0];
-		
-		var mangaChapterNumber;
-		try {
-			var url = mango.attribute(linkNode, "href");
-			
-			// Extract yyy(.yy) from: https://manganelo.com/chapter/xxxxxxxx/chapter_yyy.yy
-			mangaChapterNumber = /chapter_((\d+.?)*)/.exec(url)[1];    
-			
-			// Replace '.' with '_', since ids can't contain '.'
-			mangaChapterNumber = mangaChapterNumber.replace(/\./, "_");
-		} catch (e) {
-			mango.raise("Failed to get chapter number.");
-		}
+        var mangaTitle = mango.text(mangaTitleNode);
 
-		var chapterID = mangaID + "ch" + mangaChapterNumber  // Create ID as xxxxxxxxchyyy(_yy)
-		var chapterTitle = mango.text(linkNode);
-		var chapterUploadedTime = mango.attribute(uploadNode, "title");
-				
-		var slimObj = {};
-		slimObj['id'] = chapterID;
-		slimObj['title'] = chapterTitle;
-		slimObj['time-uploaded'] = chapterUploadedTime;
-		chapters.push(slimObj);
-	});
+        var chapters = [];
+        mango.css(html, "ul.row-content-chapter li").forEach(function (element) {
+                var linkNode   = mango.css(element, "a.chapter-name")[0];
+                var uploadNode = mango.css(element, "span.chapter-time")[0];
 
-	return JSON.stringify({
-		chapters: chapters,
-		title: mangaTitle
-	});
+                var mangaChapterNumber;
+                var mangaChapterLink;
+                try {
+                        var url = mango.attribute(linkNode, "href");
+
+                        var mangaChapterLink = mango.attribute(linkNode, "href");
+                        // Extract yyy(.yy) from: https://manganelo.com/chapter/xxxxxxxx/chapter_yyy.yy
+                        mangaChapterNumber = /chapter-((\d+.?)*)/.exec(url)[1];
+
+                        // Replace '.' with '_', since ids can't contain '.'
+                        mangaChapterNumber = mangaChapterNumber.replace(/\./, "_");
+                } catch (e) {
+                        mango.raise("Failed to get chapter number.");
+                }
+
+                var chapterID = mangaID + "chapter" + mangaChapterNumber  // Create ID as xxxxxxxxchyyy(_yy)
+                var chapterTitle = mango.text(linkNode);
+                var chapterUploadedTime = mango.attribute(uploadNode, "title");
+
+                var slimObj = {};
+                slimObj['id'] = chapterID;
+                slimObj['title'] = chapterTitle;
+                slimObj['time-uploaded'] = chapterUploadedTime;
+                chapters.push(slimObj);
+        });
+
+        return JSON.stringify({
+                chapters: chapters,
+                title: mangaTitle
+        });
 }
 
 function selectChapter(id) {
-	var mangaIDMatch = /(.*?)ch((\d_?)*)$/.exec(id);  // Extract xxxxxxxx & yyy(_yy) from ID.
-	var mangaID = mangaIDMatch[1];
-	var mangaChapterNumber = mangaIDMatch[2].replace(/\_/, "."); // Convert '_' back to '.'
-	
-	// Create URL formatted like https://manganelo.com/chapter/xxxxxxxx/chapter_yyy.yy
-	var mangaURL = CHAPTER_URL + mangaID + "/chapter_" + mangaChapterNumber; 
+        var mangaIDMatch = /(.*?)chapter((\d_?)*)/.exec(id); // Extract xxxxxxxx & yyy(_yy) from ID.
+        var mangaID = 'manga-' + mangaIDMatch[1];
+        var mangaChapterNumber = 'chapter-' + mangaIDMatch[2].replace(/\_/, "."); // Convert '_' back to '.'
 
-	var html = mango.get(mangaURL).body;
+        // Create URL formatted like https://manganelo.com/chapter/xxxxxxxx/chapter_yyy.yy
+        var mangaURL = MAIN_URL + mangaID + "/" + mangaChapterNumber;
 
-	if(!html) {
-		mango.raise("Failed to load chapter.");
-	}
+        var html = mango.get(mangaURL).body;
 
-	var chapterTitleNode = mango.css(html, "div.panel-breadcrumb a:last-child")[0];
-	
-	if (!chapterTitleNode) {
-		mango.raise("Failed to get chapter title.")
-	}
+        if(!html) {
+                mango.raise("Failed to load chapter.");
+        }
 
-	var chapterTitle = mango.text(chapterTitleNode);
+        var chapterTitleNode = mango.css(html, "div.panel-breadcrumb a:last-child")[0];
 
-	var imageNodes = mango.css(html, "div.container-chapter-reader img");
+        if (!chapterTitleNode) {
+                mango.raise("Failed to get chapter title.")
+        }
 
-	if (!imageNodes) {
-		mango.raise("Failed to get images.")
-	}
+        var chapterTitle = mango.text(chapterTitleNode);
 
-	imgURLs = [];
-	imageNodes.forEach(function(element) {
-		imgURLs.push(
-			mango.attribute(element, "src")
-		);
-	})
+        var imageNodes = mango.css(html, "div.container-chapter-reader img");
 
-	currentPage = 0;
-	digits = Math.floor(Math.log10(imgURLs.length)) + 1;
-	
-	return JSON.stringify({
-		title: chapterTitle,
-		pages: imgURLs.length
-	});
+        if (!imageNodes) {
+                mango.raise("Failed to get images.")
+        }
+
+        imgURLs = [];
+        imageNodes.forEach(function(element) {
+                imgURLs.push(
+                        mango.attribute(element, "src")
+                );
+        })
+
+        currentPage = 0;
+        digits = Math.floor(Math.log10(imgURLs.length)) + 1;
+
+        return JSON.stringify({
+                title: chapterTitle,
+                pages: imgURLs.length
+        });
 }
 
 function nextPage() {
-	if (currentPage >= imgURLs.length) {
-		return JSON.stringify({});
-	}
-	
-	var url = imgURLs[currentPage]
-	var filename = pad(currentPage, digits) + '.' + /\.(\w+)$/.exec(url)[0];
+        if (currentPage >= imgURLs.length) {
+                return JSON.stringify({});
+        }
 
-	currentPage += 1;
-	return JSON.stringify({
-		url: url,
-		filename: filename,
-		headers: {
-			'referer': "https://manganelo.com/"
-		}
-	});
+        var url = imgURLs[currentPage]
+        var filename = pad(currentPage, digits) + '.' + /\.(\w+)$/.exec(url)[0];
+
+        currentPage += 1;
+        return JSON.stringify({
+                url: url,
+                filename: filename,
+                headers: {
+                        'referer': "https://manganelo.com/"
+                }
+        });
 }
+
 
 // https://stackoverflow.com/a/10073788
 function pad(n, width, z) {
