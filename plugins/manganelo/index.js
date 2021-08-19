@@ -38,12 +38,10 @@ function listChapters(query) {
                 var uploadNode = mango.css(element, "span.chapter-time")[0];
 
                 var mangaChapterNumber;
-                var mangaChapterLink;
                 try {
                         var url = mango.attribute(linkNode, "href");
 
-                        var mangaChapterLink = mango.attribute(linkNode, "href");
-                        // Extract yyy(.yy) from: https://manganelo.com/chapter/xxxxxxxx/chapter_yyy.yy
+			// Extract yyy(.yy) from: https://readmanganato.com/manga-xxxxx/chapter-yyy(.yy)
                         mangaChapterNumber = /chapter-((\d+.?)*)/.exec(url)[1];
 
                         // Replace '.' with '_', since ids can't contain '.'
@@ -52,7 +50,7 @@ function listChapters(query) {
                         mango.raise("Failed to get chapter number.");
                 }
 
-                var chapterID = mangaID + "chapter" + mangaChapterNumber  // Create ID as xxxxxxxxchyyy(_yy)
+                var chapterID = mangaID + "chapter" + mangaChapterNumber  // Create ID as xxxxxxxxchapteryyy(_yy)
                 var chapterTitle = mango.text(linkNode);
                 var chapterUploadedTime = mango.attribute(uploadNode, "title");
 
@@ -71,11 +69,11 @@ function listChapters(query) {
 
 function selectChapter(id) {
         var mangaIDMatch = /(.*?)chapter((\d_?)*)/.exec(id); // Extract xxxxxxxx & yyy(_yy) from ID.
-        var mangaID = 'manga-' + mangaIDMatch[1];
-        var mangaChapterNumber = 'chapter-' + mangaIDMatch[2].replace(/\_/, "."); // Convert '_' back to '.'
+        var mangaID = mangaIDMatch[1];
+        var mangaChapterNumber = mangaIDMatch[2].replace(/\_/, "."); // Convert '_' back to '.'
 
-        // Create URL formatted like https://manganelo.com/chapter/xxxxxxxx/chapter_yyy.yy
-        var mangaURL = MAIN_URL + mangaID + "/" + mangaChapterNumber;
+        // Create URL formatted like https://readmanganato.com/manga-xxxxxxxx/chapter-yyy.yy
+        var mangaURL = MAIN_URL + "manga-" + mangaID + "/chapter-" + mangaChapterNumber;
 
         var html = mango.get(mangaURL).body;
 
