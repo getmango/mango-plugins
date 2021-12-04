@@ -1,8 +1,8 @@
 {
 	"id": "Catmanga",
 	"title": "Catmanga",
-	"author": "TheBritishAccent - thebritaccent@gmail.com",
+	"author": "Luke Browning - browningluke01@gmail.com",
 	"version": "v1.0",
-	"placeholder": "Enter a full manga title to search Catmanga",
+	"placeholder": "DEPRECATED",
 	"wait_seconds": 1
 }
