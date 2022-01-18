@@ -5,18 +5,16 @@ function listChapters(query) {
 	var mangaJson = {};
 	var json = {};
 
-        var mangaURL = 'https://api.mangadex.org/manga/' + query;
+	var mangaURL = 'https://api.mangadex.org/manga/' + query;
 
-        try {
-                mangaJson = JSON.parse(mango.get(mangaURL).body);
-        } catch (e) {
-                mango.raise('Failed to get JSON from ' + URL);
-        }
+	try {
+		mangaJson = JSON.parse(mango.get(mangaURL).body);
+	} catch (e) {
+		mango.raise('Failed to get JSON from ' + URL);
+	}
 
-        if (mangaJson.result !== 'ok')
-                mango.raise('JSON status: ' + mangaJson.result);
-
-
+	if (mangaJson.result !== 'ok')
+		mango.raise('JSON status: ' + mangaJson.result);
 
 	var URL = 'https://api.mangadex.org/manga/' + query + '/feed';
 
@@ -26,28 +24,26 @@ function listChapters(query) {
 		mango.raise('Failed to get JSON from ' + URL);
 	}
 
-	// mango.raise(json.result)
-
 	if (json.result !== 'ok')
 		mango.raise('JSON status: ' + json.result);
 
-        var chapters = [];
-        Object.keys(json.data).forEach(function(id) {
-                var obj = json.data[id];
+	var chapters = [];
+	Object.keys(json.data).forEach(function(id) {
+		var obj = json.data[id];
 
-                var time = new Date(obj['attributes']['createdAt']);
+		var time = new Date(obj['attributes']['createdAt']);
 
-                var slimObj = {};
-                slimObj['id'] = obj['id'].replace(/\-/g, "_");
-                slimObj['volume'] = obj['attributes']['volume'];
-                slimObj['chapter'] = obj['attributes']['chapter'];
-                slimObj['title'] = 'v' + obj['attributes']['volume'] + ' c' + obj['attributes']['chapter'] + ' - ' + obj['attributes']['title'];
-                slimObj['lang'] = obj['attributes']['translatedLanguage'];
-                slimObj['groups'] = null;
-                slimObj['time'] = time;
+		var slimObj = {};
+		slimObj['id'] = obj['id'].replace(/\-/g, "_");
+		slimObj['volume'] = obj['attributes']['volume'];
+		slimObj['chapter'] = obj['attributes']['chapter'];
+		slimObj['title'] = 'v' + obj['attributes']['volume'] + ' c' + obj['attributes']['chapter'] + ' - ' + obj['attributes']['title'];
+		slimObj['lang'] = obj['attributes']['translatedLanguage'];
+		slimObj['groups'] = null;
+		slimObj['time'] = time;
 
-                chapters.push(slimObj);
-        });
+		chapters.push(slimObj);
+	});
 
 	return JSON.stringify({
 		title: mangaJson['data']['attributes']['title']['en'],
@@ -56,9 +52,9 @@ function listChapters(query) {
 }
 
 function selectChapter(id) {
-        id = id.replace(/\_/g, "-");
+	id = id.replace(/\_/g, "-");
 	var json = {};
-        var URL = 'https://api.mangadex.org/chapter/' + id;
+	var URL = 'https://api.mangadex.org/chapter/' + id;
 
 	try {
 		json = JSON.parse(mango.get(URL).body);
@@ -80,27 +76,23 @@ function selectChapter(id) {
 }
 
 function nextPage() {
-
-        var URL = 'https://api.mangadex.org/at-home/server/' + chapter.data.id;
+	var URL = 'https://api.mangadex.org/at-home/server/' + chapter.data.id;
 
 	if (currentPage >= chapter['data']['attributes']['pages'])
 		return JSON.stringify({});
 
-        try {
-                json = JSON.parse(mango.get(URL).body);
-        } catch (e) {
-                mango.raise('Failed to get JSON from ' + URL);
-        }
+	try {
+		json = JSON.parse(mango.get(URL).body);
+	} catch (e) {
+		mango.raise('Failed to get JSON from ' + URL);
+	}
 
-        if (json.result !== 'ok')
-                mango.raise('JSON status: ' + json.result);
+	if (json.result !== 'ok')
+		mango.raise('JSON status: ' + json.result);
 
-
-//	var fn = chapter['data']['attributes']['data'][currentPage];
 	var fn = json['chapter']['data'][currentPage];
 	var info = {
 		filename: fn,
-//		url: json['baseUrl'] + '/data/' + chapter.data.attributes.hash + '/' + fn
 		url: json['baseUrl'] + '/data/' + json['chapter']['hash'] + '/' + fn
 	};
 
