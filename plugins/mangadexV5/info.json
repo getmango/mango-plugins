@@ -1,8 +1,0 @@
-{
-	"id": "mangadexV5",
-	"title": "MangaDexV5",
-	"author": "Fabio Rodrigues",
-	"version": "v1.1",
-	"placeholder": "MangaDex manga UUID (e.g., f7f430ab-2c24-49d3-b698-c9ff4787805b)",
-	"wait_seconds": 5
-}
