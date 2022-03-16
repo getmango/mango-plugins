@@ -2,6 +2,8 @@
 
 This is the official Mango plugin for [MangaDex](https://mangadex.org/).
 
+If you are looking for the v1 version of this plugin (deprecated), check out commit f045ecd5752823f100baf4f298d89f2f99237cd4.
+
 ### Configuration
 
 Under the `settings` field in `info.json`, you can customize the following values:
