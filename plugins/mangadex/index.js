@@ -150,7 +150,7 @@ function selectChapter(id) {
 
 	const atHome = mango.get('https://api.mangadex.org/at-home/server/' + id);
 	if (atHome.status_code !== 200)
-		mango.raise('Failed to get at-home server. Status ' + res.status_code);
+		mango.raise('Failed to get at-home server. Status ' + atHome.status_code);
 
 	const atHomeData = JSON.parse(atHome.body);
 
