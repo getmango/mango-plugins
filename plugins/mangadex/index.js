@@ -54,9 +54,10 @@ function searchManga(query) {
 		mango.raise('Failed to search for manga.');
 
 	return JSON.stringify(manga.map(function(m) {
+		const titleAttr = m.attributes.title;
 		const ch = {
 			id: m.id,
-			title: m.attributes.title.en,
+			title: titleAttr.en || titleAttr['ja-ro'] || titleAttr[Object.keys(titleAttr)[0]]
 		};
 		for (i = 0; i < m.relationships.length; i++) {
 			const obj = m.relationships[i];
