@@ -72,7 +72,8 @@ function searchManga(query) {
 
 function listChapters(id) {
 	const manga = getManga(id);
-	const title = manga.attributes.title.en;
+	const titleAttr = manga.attributes.title;
+	const title = titleAttr.en || titleAttr['ja-ro'] || titleAttr[Object.keys(titleAttr)[0]];
 
 	var url = 'https://api.mangadex.org/manga/' + id + '/feed?';
 
@@ -121,7 +122,8 @@ function newChapters(mangaId, after) {
 	const chapters = JSON.parse(res.body).data;
 
 	const manga = getManga(mangaId);
-	const title = manga.attributes.title.en;
+	const titleAttr = manga.attributes.title;
+	const title = titleAttr.en || titleAttr['ja-ro'] || titleAttr[Object.keys(titleAttr)[0]];
 
 	return JSON.stringify(chapters.map(function(ch) {
 		return formatChapter(ch, title);
@@ -147,7 +149,8 @@ function selectChapter(id) {
 		mango.raise('Failed to get Manga ID from chapter');
 
 	const manga = getManga(mangaId);
-	const title = manga.attributes.title.en;
+	const titleAttr = manga.attributes.title;
+	const title = titleAttr.en || titleAttr['ja-ro'] || titleAttr[Object.keys(titleAttr)[0]];
 
 	const atHome = mango.get('https://api.mangadex.org/at-home/server/' + id);
 	if (atHome.status_code !== 200)
