@@ -170,8 +170,8 @@ function nextPage() {
 	const filename = atHome.chapter.data[page];
 	if (!filename) return JSON.stringify({});
 
-	//Get the number of 'numbers' of pages
-	const len = Math.ceil(Math.log(atHome.chapter.data.length + 1) / Math.LN10);
+	//Get the number of digits of pages
+	const len = atHome.chapter.data.length.toString().length;
 	//Pad the page number with zeroes depending of the number of pages
 	const pageNum = Array(Math.max(len - String(page + 1).length + 1, 0)).join(0) + (page + 1);
 
