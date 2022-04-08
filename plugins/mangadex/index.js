@@ -167,12 +167,19 @@ function selectChapter(id) {
 function nextPage() {
 	const page = parseInt(mango.storage('page'));
 	const atHome = JSON.parse(mango.storage('atHomeData'));
-	const filename = atHome.chapter.data[page]
-	mango.storage('page', (page + 1).toString());
+	const filename = atHome.chapter.data[page];
 	if (!filename) return JSON.stringify({});
+
+	//Get the number of digits of pages
+	const len = atHome.chapter.data.length.toString().length;
+	//Pad the page number with zeroes depending of the number of pages
+	const pageNum = Array(Math.max(len - String(page + 1).length + 1, 0)).join(0) + (page + 1);
+
+	const finalFilename = pageNum + '.' + filename.split('.')[filename.split('.').length -1];
+	mango.storage('page', (page + 1).toString());
 
 	return JSON.stringify({
 		url: atHome.baseUrl + '/data/' + atHome.chapter.hash + '/' + filename,
-		filename: filename,
+		filename: finalFilename,
 	});
 }
