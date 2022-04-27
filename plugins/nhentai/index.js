@@ -63,7 +63,7 @@ function selectChapter(id) {
 
 	uglyPageURL = mango.attribute(firstPageATag, 'data-src');
 	var pageURLMatch = /\/galleries\/([0-9]+)\/.*?\.(\w*)/.exec(uglyPageURL);
-	
+
 	pageURL = NHENTAI_IMAGE_URL + pageURLMatch[1] + "/";
 	imageType = pageURLMatch[2];
 
@@ -82,22 +82,28 @@ function nextPage() {
 	if (ended) {
 		return JSON.stringify({});
 	}
-		
+
 	pageCount += 1;
 
 	if (pageCount === totalPages) {
 		ended = true;
 	}
 
-	var url = pageURL + pageCount + "." + imageType;
+	var url, extension;
+	var extensions = [imageType, 'png', 'jpg', 'gif', 'jpeg'];
 
 	// Not all galleries have uniform file types
 	// Post should return 405 if path exists, 404 otherwise.
-	if (mango.post(url, "").status_code == 404) {
-		url = pageURL + pageCount + "." +  (imageType == "png" ? "jpg" : "png");
+	for (var i = 0; i < extensions.length; i++) {
+		extension = extensions[i];
+		url = pageURL + pageCount + "." +  extension;
+		if (mango.post(url, "").status_code == 405) {
+			// We got the right extension
+			break;
+		}
 	}
 
-	var filename = pad(pageCount, digits) + '.' + imageType;
+	var filename = pad(pageCount, digits) + '.' + extension;
 
 	return JSON.stringify({
 		url: url,
