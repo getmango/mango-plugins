@@ -1,81 +1,185 @@
-var chapter;
-var currentPage;
+function getCoverURL(mangaId, coverId) {
+	const res = mango.get('https://api.mangadex.org/cover/' + coverId);
+	if (res.status_code !== 200)
+		mango.raise('Failed to cover ID. Status ' + res.status_code);
+	const filename = JSON.parse(res.body).data.attributes.fileName;
+	return 'https://uploads.mangadex.org/covers/' + mangaId + '/' + filename;
+}
 
-function listChapters(query) {
-	var json = {};
-	var URL = 'https://mangadex.org/api/manga/' + query;
-	try {
-		json = JSON.parse(mango.get(URL).body);
-	} catch (e) {
-		mango.raise('Failed to get JSON from ' + URL);
+function getManga(mangaId) {
+	const res = mango.get('https://api.mangadex.org/manga/' + mangaId);
+	if (res.status_code !== 200)
+		mango.raise('Failed to get manga. Status ' + res.status_code);
+	return JSON.parse(res.body).data;
+}
+
+function formatChapter(json, mangaTitle) {
+	var title = json.attributes.title || "";
+	if (json.attributes.volume)
+		title += ' Vol. ' + json.attributes.volume;
+	if (json.attributes.chapter)
+		title += ' Ch. ' + json.attributes.chapter;
+	var groupId;
+	for (i = 0; i < json.relationships.length; i++) {
+		const obj = json.relationships[i];
+		if (obj.type === 'scanlation_group') {
+			groupId = obj.id;
+			break;
+		}
+	}
+	const obj = {
+		id: json.id,
+		title: title,
+		manga_title: mangaTitle,
+		pages: json.attributes.pages,
+		volume: json.attributes.volume,
+		chapter: json.attributes.chapter,
+		language: json.attributes.translatedLanguage,
+		group_id: groupId || null,
+		published_at: Date.parse(json.attributes.publishAt),
+	};
+	return obj;
+}
+
+function formatTimestamp(timestamp) {
+	return new Date(timestamp).toISOString().replace('.000Z', '');
+}
+
+function searchManga(query) {
+	const res = mango.get('https://api.mangadex.org/manga?title=' + encodeURIComponent(query));
+	if (res.status_code !== 200)
+		mango.raise('Failed to search for manga. Status ' + res.status_code);
+	const manga = JSON.parse(res.body).data;
+	if (!manga)
+		mango.raise('Failed to search for manga.');
+
+	return JSON.stringify(manga.map(function(m) {
+		const titleAttr = m.attributes.title;
+		const ch = {
+			id: m.id,
+			title: titleAttr.en || titleAttr['ja-ro'] || titleAttr[Object.keys(titleAttr)[0]]
+		};
+		for (i = 0; i < m.relationships.length; i++) {
+			const obj = m.relationships[i];
+			if (obj.type === 'cover_art') {
+				ch.cover_url = getCoverURL(m.id, obj.id);
+				break;
+			}
+		}
+		return ch;
+	}));
+}
+
+function listChapters(id) {
+	const manga = getManga(id);
+	const titleAttr = manga.attributes.title;
+	const title = titleAttr.en || titleAttr['ja-ro'] || titleAttr[Object.keys(titleAttr)[0]];
+
+	var url = 'https://api.mangadex.org/manga/' + id + '/feed?';
+
+	const langStr = mango.settings('language');
+	if (langStr) {
+		const langAry = langStr.split(',').forEach(function(lang) {
+			url += 'translatedLanguage[]=' + lang.trim() + '&';
+		});
 	}
 
-	if (json.status !== 'OK')
-		mango.raise('JSON status: ' + json.status);
+	const limit = mango.settings('listChapterLimit');
+	if (limit) {
+		url += 'limit=' + limit.trim() + '&';
+	}
 
-	var chapters = [];
-	Object.keys(json.chapter).forEach(function(id) {
-		var obj = json.chapter[id];
+	const res = mango.get(url);
+	if (res.status_code !== 200)
+		mango.raise('Failed to list chapters. Status ' + res.status_code);
 
-		var groups = [];
-		['group_name', 'group_name_2', 'group_name_3'].forEach(function(key) {
-			if (obj[key]) {
-				groups.push(obj[key]);
-			}
+	const chapters = JSON.parse(res.body).data;
+
+	return JSON.stringify(chapters.map(function(ch) {
+		return formatChapter(ch, title);
+	}));
+}
+
+function newChapters(mangaId, after) {
+	var url = 'https://api.mangadex.org/manga/' + mangaId + '/feed?publishAtSince=' + formatTimestamp(after) + '&';
+
+	const langStr = mango.settings('language');
+	if (langStr) {
+		const langAry = langStr.split(',').forEach(function(lang) {
+			url += 'translatedLanguage[]=' + lang.trim() + '&';
 		});
-		groups = groups.join(', ');
-		var time = new Date(obj.timestamp * 1000);
+	}
 
-		var slimObj = {};
-		slimObj['id'] = id;
-		slimObj['volume'] = obj['volume'];
-		slimObj['chapter'] = obj['chapter'];
-		slimObj['title'] = obj['title'];
-		slimObj['lang'] = obj['lang_code'];
-		slimObj['groups'] = groups;
-		slimObj['time'] = time;
+	const limit = mango.settings('listChapterLimit');
+	if (limit) {
+		url += 'limit=' + limit.trim() + '&';
+	}
 
-		chapters.push(slimObj);
-	});
+	const res = mango.get(url);
+	if (res.status_code !== 200)
+		mango.raise('Failed to list new chapters. Status ' + res.status_code);
 
-	return JSON.stringify({
-		title: json.manga.title,
-		chapters: chapters
-	});
+	const chapters = JSON.parse(res.body).data;
+
+	const manga = getManga(mangaId);
+	const titleAttr = manga.attributes.title;
+	const title = titleAttr.en || titleAttr['ja-ro'] || titleAttr[Object.keys(titleAttr)[0]];
+
+	return JSON.stringify(chapters.map(function(ch) {
+		return formatChapter(ch, title);
+	}));
 }
 
 function selectChapter(id) {
-	var json = {};
-	var URL = 'https://mangadex.org/api/chapter/' + id;
-	try {
-		json = JSON.parse(mango.get(URL).body);
-	} catch (e) {
-		mango.raise('Failed to get JSON from ' + URL);
+	const res = mango.get('https://api.mangadex.org/chapter/' + id);
+	if (res.status_code !== 200)
+		mango.raise('Failed to get chapter. Status ' + res.status_code);
+
+	const chapter = JSON.parse(res.body).data;
+	var mangaId;
+	for (i = 0; i < chapter.relationships.length; i++) {
+		const obj = chapter.relationships[i];
+		if (obj.type === 'manga') {
+			mangaId = obj.id;
+			break;
+		}
 	}
 
-	if (json.status !== 'OK')
-		mango.raise('JSON status: ' + json.status);
+	if (!mangaId)
+		mango.raise('Failed to get Manga ID from chapter');
 
-	chapter = json;
-	currentPage = 0;
+	const manga = getManga(mangaId);
+	const titleAttr = manga.attributes.title;
+	const title = titleAttr.en || titleAttr['ja-ro'] || titleAttr[Object.keys(titleAttr)[0]];
 
-	var info = {
-		title: json.title.trim() || ('Ch.' + json.chapter),
-		pages: json.page_array.length
-	};
-	return JSON.stringify(info);
+	const atHome = mango.get('https://api.mangadex.org/at-home/server/' + id);
+	if (atHome.status_code !== 200)
+		mango.raise('Failed to get at-home server. Status ' + atHome.status_code);
+
+	const atHomeData = JSON.parse(atHome.body);
+
+	mango.storage('atHomeData', JSON.stringify(atHomeData));
+	mango.storage('page', '0');
+
+	return JSON.stringify(formatChapter(chapter, title));
 }
 
 function nextPage() {
-	if (currentPage >= chapter.page_array.length)
-		return JSON.stringify({});
+	const page = parseInt(mango.storage('page'));
+	const atHome = JSON.parse(mango.storage('atHomeData'));
+	const filename = atHome.chapter.data[page];
+	if (!filename) return JSON.stringify({});
 
-	var fn = chapter.page_array[currentPage];
-	var info = {
-		filename: fn,
-		url: chapter.server + chapter.hash + '/' + fn
-	};
+	//Get the number of digits of pages
+	const len = atHome.chapter.data.length.toString().length;
+	//Pad the page number with zeroes depending of the number of pages
+	const pageNum = Array(Math.max(len - String(page + 1).length + 1, 0)).join(0) + (page + 1);
 
-	currentPage += 1;
-	return JSON.stringify(info);
+	const finalFilename = pageNum + '.' + filename.split('.')[filename.split('.').length -1];
+	mango.storage('page', (page + 1).toString());
+
+	return JSON.stringify({
+		url: atHome.baseUrl + '/data/' + atHome.chapter.hash + '/' + filename,
+		filename: finalFilename,
+	});
 }

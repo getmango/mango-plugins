@@ -2,7 +2,12 @@
 	"id": "mangadex",
 	"title": "MangaDex",
 	"author": "Alex Ling - hkalexling@gmail.com",
-	"version": "v1.0",
-	"placeholder": "MangaDex manga ID (e.g., 7139)",
-	"wait_seconds": 5
+	"version": "v2.0",
+	"placeholder": "Search MangaDex",
+	"wait_seconds": 5,
+	"api_version": 2,
+	"settings": {
+		"language": "en",
+		"listChapterLimit": "200"
+	}
 }
