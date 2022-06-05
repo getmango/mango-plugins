@@ -1,0 +1,11 @@
+{
+	"id": "manhuadb",
+	"title": "ManhuaDB",
+	"author": "Ftbom - lz490070@gmail.com",
+	"version": "v1.0",
+	"placeholder": "Search ManhuaDB",
+	"wait_seconds": 2,
+	"api_version": 2,
+	"settings": {
+	}
+}
