@@ -10,10 +10,8 @@ const NHENTAI_IMAGE_URL = "https://i.nhentai.net/galleries/";
 
 
 function listChapters(url) {
-	
-	if(url.includes(NHENTAI_BASE_URL,0) ==false)
-	{
-		url=NHENTAI_BASE_URL+url+"/";
+	if (!url.includes(NHENTAI_BASE_URL, 0)) {
+		url = NHENTAI_BASE_URL + url;
 	}
 	
 	var html = mango.get(url).body;
