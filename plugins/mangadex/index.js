@@ -46,7 +46,7 @@ function formatTimestamp(timestamp) {
 }
 
 function searchManga(query) {
-	const res = mango.get('https://api.mangadex.org/manga?title=' + encodeURIComponent(query));
+	const res = mango.get('https://api.mangadex.org/manga?title=' + encodeURIComponent(query) + '&contentRating[]=safe&contentRating[]=suggestive&contentRating[]=erotica&contentRating[]=pornographic');
 	if (res.status_code !== 200)
 		mango.raise('Failed to search for manga. Status ' + res.status_code);
 	const manga = JSON.parse(res.body).data;
@@ -89,6 +89,8 @@ function listChapters(id) {
 		url += 'limit=' + limit.trim() + '&';
 	}
 
+  url += 'contentRating[]=safe&contentRating[]=suggestive&contentRating[]=erotica&contentRating[]=pornographic&';
+
 	const res = mango.get(url);
 	if (res.status_code !== 200)
 		mango.raise('Failed to list chapters. Status ' + res.status_code);
@@ -114,6 +116,8 @@ function newChapters(mangaId, after) {
 	if (limit) {
 		url += 'limit=' + limit.trim() + '&';
 	}
+
+  url += 'contentRating[]=safe&contentRating[]=suggestive&contentRating[]=erotica&contentRating[]=pornographic&';
 
 	const res = mango.get(url);
 	if (res.status_code !== 200)
