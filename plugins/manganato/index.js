@@ -94,11 +94,7 @@ function selectChapter(id) {
     });
 
     return JSON.stringify(obj.filter(function (f) {
-        if (f.id == id) {
-            return true;
-        } else {
-            return false;
-        }
+        return f.id == id;
     }).pop());
 }
 
@@ -110,7 +106,6 @@ function nextPage() {
 
     const len = urls.length.toString().length;
     const pageNum = Array(Math.max(len - String(page + 1).length + 1, 0)).join(0) + (page + 1);
-    const filename = page + '.jpg';
     const finalFilename = pageNum + '.' + filename.split('.').pop();
     mango.storage('page', (page + 1).toString());
 
