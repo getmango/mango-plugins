@@ -1,0 +1,9 @@
+{
+	"id": "Manganato",
+	"title": "Manganato",
+	"author": "MattTheHuman - m@ttwebster.co.uk",
+	"version": "v2.0",
+	"placeholder": "Search Manganato",
+	"wait_seconds": 5,
+	"api_version": 2
+}
