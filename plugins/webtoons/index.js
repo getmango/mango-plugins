@@ -22,12 +22,14 @@ function listChapters(query) {
 	if (search["items"].length == 0) mango.raise("Could not find a webtoon with that title.");
 
 	var mangaID;
+	var mangaTitle;
 	for (var i = 0; i < search["items"][0].length; i++) {
 		var item = search["items"][0][i];
 		
 		// Get first webtoon, ignore authors
 		if (item[1][0] == "TITLE") {
 			mangaID = item[3][0];
+			mangaTitle = item[0][0];
 			break;
 		}
 	}
@@ -94,16 +96,9 @@ function listChapters(query) {
 		chapters.push(slimObj);
 	});
 	
-	try {
-		var chapterTitleNode = mango.css(html, 'meta[property="og:title"]');
-		var chapterTitle = mango.attribute(chapterTitleNode[0], "content");
-	} catch (error) {
-		mango.raise("Could not get title.");
-	}
-	
 	return JSON.stringify({
 		chapters: chapters,
-		title: chapterTitle
+		title: mangaTitle
 	});
 }
 
