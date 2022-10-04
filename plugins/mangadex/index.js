@@ -1,3 +1,5 @@
+const QUERY_PARAMS = 'contentRating[]=safe&contentRating[]=suggestive&contentRating[]=erotica&contentRating[]=pornographic&';
+
 function getCoverURL(mangaId, coverId) {
 	const res = mango.get('https://api.mangadex.org/cover/' + coverId);
 	if (res.status_code !== 200)
@@ -46,7 +48,7 @@ function formatTimestamp(timestamp) {
 }
 
 function searchManga(query) {
-	const res = mango.get('https://api.mangadex.org/manga?title=' + encodeURIComponent(query) + '&contentRating[]=safe&contentRating[]=suggestive&contentRating[]=erotica&contentRating[]=pornographic');
+	const res = mango.get('https://api.mangadex.org/manga?title=' + encodeURIComponent(query) + '&' + QUERY_PARAMS);
 	if (res.status_code !== 200)
 		mango.raise('Failed to search for manga. Status ' + res.status_code);
 	const manga = JSON.parse(res.body).data;
@@ -75,7 +77,7 @@ function listChapters(id) {
 	const titleAttr = manga.attributes.title;
 	const title = titleAttr.en || titleAttr['ja-ro'] || titleAttr[Object.keys(titleAttr)[0]];
 
-	var url = 'https://api.mangadex.org/manga/' + id + '/feed?';
+	var url = 'https://api.mangadex.org/manga/' + id + '/feed?' + QUERY_PARAMS;
 
 	const langStr = mango.settings('language');
 	if (langStr) {
@@ -88,8 +90,6 @@ function listChapters(id) {
 	if (limit) {
 		url += 'limit=' + limit.trim() + '&';
 	}
-
-  url += 'contentRating[]=safe&contentRating[]=suggestive&contentRating[]=erotica&contentRating[]=pornographic&';
 
 	const res = mango.get(url);
 	if (res.status_code !== 200)
@@ -103,7 +103,7 @@ function listChapters(id) {
 }
 
 function newChapters(mangaId, after) {
-	var url = 'https://api.mangadex.org/manga/' + mangaId + '/feed?publishAtSince=' + formatTimestamp(after) + '&';
+	var url = 'https://api.mangadex.org/manga/' + mangaId + '/feed?publishAtSince=' + formatTimestamp(after) + '&' + QUERY_PARAMS;
 
 	const langStr = mango.settings('language');
 	if (langStr) {
@@ -116,8 +116,6 @@ function newChapters(mangaId, after) {
 	if (limit) {
 		url += 'limit=' + limit.trim() + '&';
 	}
-
-  url += 'contentRating[]=safe&contentRating[]=suggestive&contentRating[]=erotica&contentRating[]=pornographic&';
 
 	const res = mango.get(url);
 	if (res.status_code !== 200)
