@@ -5,109 +5,128 @@ var digits = 0;
 var imageType;
 var totalPages;
 
-const NHENTAI_BASE_URL = 'https://nhentai.net/g/';
-const NHENTAI_IMAGE_URL = "https://i.nhentai.net/galleries/";
+// Nhentai IP address is mandatory to bypass the cloudflare protection (title API is protected by cloudflare)
+const NHENTAI_API_BASE_URL = 'http://138.2.77.198:3002/api/gallery/';
+// Only image API that exposes cover
+const NHENTAI_COVER_SERVER_URL = 'https://t5.nhentai.net/galleries/';
+// API that exposes images
+const NHENTAI_IMAGE_SERVER_URL = "https://i.nhentai.net/galleries/";
 
+function searchManga(query) {
 
-function listChapters(url) {
-	if (!url.includes(NHENTAI_BASE_URL, 0)) {
-		url = NHENTAI_BASE_URL + url;
+	var mangas = []
+
+	var regex = /\/g\/([a-zA-Z0-9]+)\//g
+
+	var match = regex.exec(query)
+
+	// Multiple URL query
+	while (match != null){
+
+		var mangaID = match[1]
+
+		var response = mango.get(NHENTAI_API_BASE_URL + mangaID.toString()).body;
+
+		var json = JSON.parse(response)
+
+		var mangaTitle = json.title.english;
+		var mediaID = json.media_id
+		var coverType = convertType(json.images.cover.t)
+
+		if (mangaTitle){
+
+			mangas.push({
+				id: mangaID,
+				title: mangaTitle,
+				cover_url: NHENTAI_COVER_SERVER_URL + mediaID + "/cover." + coverType 
+			});
+
+		}
+
+		match = regex.exec(query)
+
 	}
-	
-	var html = mango.get(url).body;
 
-	var urlMatch = /\/g\/([a-zA-Z0-9]+)\//.exec(url);
-	var chapterID = urlMatch[1];
+	return JSON.stringify(mangas)
 
-	var chapterTitleNode = mango.css(html, '.title')[0];
+}
 
-	if (!chapterTitleNode)
-		mango.raise("Failed to get gallery title");
+function listChapters(mangaID) {
 
-	var chapterTitle = mango.text(chapterTitleNode);
+	const url = NHENTAI_API_BASE_URL + mangaID
+
+	if (!url.match(/\/api\/gallery\/[0-9]+$/))
+		mango.raise('Invalid API query url')
+
+	var response = mango.get(url).body;
+
+	var json = JSON.parse(response)
+
+	var chapterTitle = json.title.english
+	var chapterLenght = json.images.pages.length
 
 	var chapters = [{
-		id: chapterID,
-		title: chapterTitle
+		id: mangaID,
+		manga_title: 'nhentai',
+		title: chapterTitle,
+		pages: chapterLenght,
+		volume: null,
+                chapter: null,
+                groups: null,
+                language: null,
+                tags: []
 	}];
-	return JSON.stringify({
-		chapters: chapters,
-		title: 'nhentai'
-	});
+
+	return JSON.stringify(chapters);
 }
 
 function selectChapter(id) {
-	var url = NHENTAI_BASE_URL + id + '/';
-	var html = mango.get(url).body;
+	var url = NHENTAI_API_BASE_URL + id;
+	var response = mango.get(url).body;
+	var json = JSON.parse(response)
 
-	var chapterTitleNode = mango.css(html, '.title')[0];
+	var chapterTitle = json.title.english;
+	var mediaID = json.media_id
+	var pagesNumber = json.images.pages.length
 
-	if (!chapterTitleNode) {
-		mango.raise("Failed to get gallery title");
+	var pageInfos = []
+	for (var i = 1; i <= pagesNumber; i = i + 1 ){
+
+		var page = json.images.pages[0]
+		var pageType = convertType(page.t)
+		pageInfos.push({mediaID: mediaID , index: i , pageType: pageType})
+
 	}
-
-	var chapterTitle = mango.text(chapterTitleNode);
-
-	var pages = 0;
-	try {
-		var pagesSpan = mango.css(html, '#tags div:nth-last-child(2) span.name')[0];
-		if (!pagesSpan) {
-			throw new Error();
-		}
-		var lengthText = mango.text(pagesSpan);
-		pages = parseInt(lengthText);
-	} catch (e) {
-		mango.raise("Failed to get page count");
-	}
-
-	var firstPageATag = mango.css(html, 'div#thumbnail-container img.lazyload')[0];
-	if (!firstPageATag) {
-		mango.raise("Failed to get URL to the first page");
-	}
-
-	uglyPageURL = mango.attribute(firstPageATag, 'data-src');
-	var pageURLMatch = /\/galleries\/([0-9]+)\/.*?\.(\w*)/.exec(uglyPageURL);
-
-	pageURL = NHENTAI_IMAGE_URL + pageURLMatch[1] + "/";
-	imageType = pageURLMatch[2];
-
-	ended = false;
-	pageCount = 0;
-	totalPages = pages;
-	digits = Math.floor(Math.log10(pages)) + 1;
+	mango.storage('pageInfos', JSON.stringify(pageInfos))
+	mango.storage('status', "0")
 
 	return JSON.stringify({
+		id: id,
 		title: chapterTitle,
-		pages: pages
+		manga_title: chapterTitle,
+		pages: pagesNumber,
+		volume: null,
+		chapter: null,
+		groups: null,
+		language: null,
+		tags: []
 	});
 }
 
 function nextPage() {
-	if (ended) {
+	var status = parseInt(mango.storage('status'))
+	var pageInfos = JSON.parse(mango.storage('pageInfos'))
+
+	if (status >= pageInfos.length) {
 		return JSON.stringify({});
 	}
 
-	pageCount += 1;
+	var pageInfo = pageInfos[status]
+	var url = NHENTAI_IMAGE_SERVER_URL + pageInfo.mediaID + '/' + pageInfo.index + '.' + pageInfo.pageType
+	var filename = pageInfo.index + '.' + pageInfo.pageType
 
-	if (pageCount === totalPages) {
-		ended = true;
-	}
-
-	var url, extension;
-	var extensions = [imageType, 'png', 'jpg', 'gif', 'jpeg'];
-
-	// Not all galleries have uniform file types
-	// Post should return 405 if path exists, 404 otherwise.
-	for (var i = 0; i < extensions.length; i++) {
-		extension = extensions[i];
-		url = pageURL + pageCount + "." +  extension;
-		if (mango.post(url, "").status_code == 405) {
-			// We got the right extension
-			break;
-		}
-	}
-
-	var filename = pad(pageCount, digits) + '.' + extension;
+	status = status + 1
+        mango.storage('status', JSON.stringify( status ))
 
 	return JSON.stringify({
 		url: url,
@@ -120,4 +139,26 @@ function pad(n, width, z) {
 	z = z || '0';
 	n = n + '';
 	return n.length >= width ? n : new Array(width - n.length + 1).join(z) + n;
+}
+
+
+// https://github.com/Zekfad/nhentai-api/blob/master/src/api.js
+function convertType(type) {
+	type = type.toLowerCase();
+	switch (type) {
+		case 'j':
+		case 'jpg':
+		case 'jpeg':
+			type = 'jpg';
+			break;
+		case 'p':
+		case 'png':
+			type = 'png';
+			break;
+		case 'g':
+		case 'gif':
+			type = 'gif';
+			break;
+	}
+	return type;
 }

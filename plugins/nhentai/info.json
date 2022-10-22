@@ -2,7 +2,8 @@
 	"id": "nhentai",
 	"title": "nhentai",
 	"author": "TheBritishAccent - thebritaccent@gmail.com",
-	"version": "v1.0",
+	"version": "v2.0",
+	"api_version": 2,
 	"placeholder": "nhentai Gallery URL",
 	"wait_seconds": 1
 }
