@@ -7,6 +7,7 @@ var totalPages;
 
 // Nhentai IP address is mandatory to bypass the cloudflare protection (title API is protected by cloudflare)
 const NHENTAI_API_BASE_URL = 'http://138.2.77.198:3002/api/gallery/';
+const NHENTAI_API_SEARCH_URL = 'http://138.2.77.198:3002/api/galleries/search?query='
 // Only image API that exposes cover
 const NHENTAI_COVER_SERVER_URL = 'https://t5.nhentai.net/galleries/';
 // API that exposes images
@@ -46,6 +47,22 @@ function searchManga(query) {
 		match = regex.exec(query)
 
 	}
+	// String search
+	var response = mango.get(NHENTAI_API_SEARCH_URL + encodeURI(query)).body
+	var json = JSON.parse(response)
+	if (!json.error){
+		var resultQuantity = json.result.length
+		for (var i = 0; i < resultQuantity; i+=1){
+			var result = json.result[i]
+			var coverType = convertType(result.images.cover.t)
+			mangas.push({
+	                        id: result.id.toString(),
+	                        title: result.title.english,
+                        	cover_url: NHENTAI_COVER_SERVER_URL + result.mediaID + "/cover." + coverType
+                	})
+		}
+	}
+	console.log(JSON.stringify(mangas))
 
 	return JSON.stringify(mangas)
 
