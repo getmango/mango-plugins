@@ -1,5 +1,5 @@
 const SEARCH_URL = "https://manganato.com/search/story/";
-const MAIN_URL = "https://readmanganato.com/";
+const MAIN_URL = "https://chapmanganato.com/";
 const ALT_URL = "https://manganato.com/";
 
 function searchManga(query) {
