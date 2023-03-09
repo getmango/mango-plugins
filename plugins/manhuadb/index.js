@@ -60,8 +60,8 @@ function selectChapter(id) {
 	if (res.status_code !== 200)
 		mango.raise('Failed to get chapter. Status ' + res.status_code);
 	var html = res.body;
-	var script = mango.text(mango.css(html, 'script')[7]);
-	script = script.substring(16, script.length - 2);
+	var script = mango.css(html, 'script')[7];
+	script = script.substring(16 + 8, script.length - 2 - 9);
 	var img_urls = JSON.parse(Base64.decode(script));
 	var img_url_front = mango.attribute(mango.css(html, '.show-pic')[0], 'src');
 	img_url_front = img_url_front.substring(0, img_url_front.search(img_urls[0]['img']));
