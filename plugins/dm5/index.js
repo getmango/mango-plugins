@@ -38,7 +38,7 @@ function listChapters(query) {
 }
 
 function reloadDM5() {
-	var url = 'http://www.dm5.com/m' + cid + '/';
+	var url = 'https://www.dm5.com/m' + cid + '/';
 
 	var html = mango.get(url, headers).body;
 	DM5 = {};
@@ -69,7 +69,6 @@ function selectChapter(id) {
 	currentPage = 1;
 	var pageCount = DM5.IMAGE_COUNT;
 	digits = Math.floor(Math.log10(pageCount)) + 1;
-
 	return JSON.stringify({
 		title: DM5.CTITLE,
 		pages: pageCount
@@ -105,11 +104,13 @@ function nextPage() {
 	var imgAry = eval(html);
 	var imgURL = imgAry[0];
 	var filename = pad(currentPage, digits) + '.jpg'
-
+	var pageHeaders = Object.assign(headers);
+	pageHeaders['Referer'] = 'http://www.dm5.com/m' + cid;
 	currentPage += 1;
 
 	return JSON.stringify({
 		url: imgURL,
+		headers: pageHeaders,
 		filename: filename
 	});
 }
