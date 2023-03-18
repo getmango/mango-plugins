@@ -1,0 +1,12 @@
+{
+	"id": "hentai_cosplay",
+	"title": "Hentai Cosplay",
+	"author": "",
+	"version": "v1.0",
+	"placeholder": "search hentai cosplay",
+	"wait_seconds": 1,
+	"api_version": 2,
+	"settings": {
+		"listChapterLimit": "100"
+	}
+}
