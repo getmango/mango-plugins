@@ -1,5 +1,5 @@
 const SEARCH_URL = "https://manganato.com/search/story/";
-const MAIN_URL = "https://readmanganato.com/";
+const MAIN_URL = "https://chapmanganato.com/";
 const ALT_URL = "https://manganato.com/";
 
 function searchManga(query) {
@@ -116,7 +116,7 @@ function nextPage() {
             authority: 'v13.mkklcdnv6tempv4.com',
             accept: 'image/avif,image/webp,image/apng,image/svg+xml,image',
             pragma: 'no-cache',
-            referer: 'https://readmanganato.com/'
+            referer: 'https://chapmanganato.com/'
         }
     });
 }
